@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface DashboardProps {
   setAuth: (authState: boolean) => void;
@@ -13,7 +15,7 @@ interface User {
 const Dashboard: React.FC<DashboardProps> = ({ setAuth }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleLogout = useCallback(() => {
@@ -47,8 +49,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setAuth }) => {
       setUser({ name: data.user.user_name, email: data.user.user_email });
     } catch (error: unknown) {
       console.error("Dashboard error:", error);
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      setError(errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      toast.error(errorMessage, { autoClose: 5000 });
       //redirect to login if user is unauthorized
       if (
         error instanceof Error &&
@@ -66,7 +69,18 @@ const Dashboard: React.FC<DashboardProps> = ({ setAuth }) => {
     getUserData();
   }, [getUserData]);
 
-  if (loading) return <div className="w-75">Loading dashboard...</div>;
+  const LoadingSkeleton = () => (
+    <div className="max-w-3xl mx-auto space-y-8 animate-pulse">
+      <div className="h-12 bg-gray-200 rounded w-3/4 mx-auto"></div>
+      <div className="bg-white p-8 rounded-2xl shadow-xl space-y-6">
+        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+        <div className="h-4 bg-gray-200 rounded w-full"></div>
+        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+      </div>
+    </div>
+  );
+
+  if (loading) return <LoadingSkeleton />;
   if (error) return <div className="w-75 text-danger">Error: {error}</div>;
 
   return (
